@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase Server Auth</title>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js" defer ></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js" defer ></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js" defer ></script>
+    <script>
+
+    </script>
+  </head>
+  <body>
+    <main>
+      <div>
+        <form id="login">
+          <label>Login</label>
+          <input type="text" name="login" />
+          <label>Password</label>
+          <input type="password" name="password" />
+          <button>Log in</button>
+        </form>
+      </div>
+      <br />
+      <div>
+        <button id="signInWithFacebook">signInWithFacebook</button>
+      </div>
+
+      <script>
+        window.addEventListener("DOMContentLoaded", () => {
+          const firebaseConfig = {
+            apiKey: "AIzaSyB_S2Y6htDtyIznKt-f6Dxh6wQmsY0Qvvk",
+            authDomain: "jenosize-3b077.firebaseapp.com",
+            projectId: "jenosize-3b077",
+            storageBucket: "jenosize-3b077.appspot.com",
+            messagingSenderId: "724666751754",
+            appId: "1:724666751754:web:915ee9439ea823dafcb8f3",
+            measurementId: "G-4KQ7DQNHPF"
+          };
+
+          firebase.initializeApp(firebaseConfig);
+
+          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+          document
+            .getElementById("login")
+            .addEventListener("submit", (event) => {
+              event.preventDefault();
+              const login = event.target.login.value;
+              const password = event.target.password.value;
+
+              firebase
+                .auth()
+                .signInWithEmailAndPassword(login, password)
+                .then(({ user }) => {
+                  return user.getIdToken().then(async (idToken) => {
+                    console.log("idToken :", idToken)
+                    let sessionLogin = await fetch("/sessionLogin", {
+                      method: "POST",
+                      headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+                      },
+                      body: JSON.stringify({ idToken }),
+                    });
+                    if(sessionLogin.status == 200){
+                      window.location.assign("/profile");
+                    }
+                  });
+                })
+                .catch((e) => {
+                  alert(e.message)
+                  console.log("e :",e)
+                })
+              return false;
+            });
+        });
+
+        const signInWithFacebookButton = document.getElementById('signInWithFacebook');
+        const signInWithFacebook = () => {
+        const facebookProvider = new firebase.auth.FacebookAuthProvider();
+
+        const auth = firebase.auth()
+        auth.signInWithPopup(facebookProvider).then(({ user }) => {
+            return user.getIdToken().then(async (idToken) => {
+              console.log("idToken :",idToken)
+              let sessionLogin = await fetch("/sessionLogin", {
+                      method: "POST",
+                      headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+                      },
+                      body: JSON.stringify({ idToken }),
+                    });
+                    if(sessionLogin.status == 200){
+                      window.location.assign("/profile");
+                    }
+                  });
+          }).catch((e) => {
+            alert(e.message)
+            console.log("e :",e)
+          })
+        .catch(error => {
+          console.error(error);
+        })
+      }
+
+      signInWithFacebookButton.addEventListener('click', signInWithFacebook);
+      </script>
+    </main>
+  </body>
+</html>
