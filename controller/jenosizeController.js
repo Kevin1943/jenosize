@@ -3,12 +3,36 @@ const router = express.Router();
 
 const { initializeApp } = require("firebase-admin/app");
 
+const { Client } = require("@googlemaps/google-maps-services-js");
+
 router.index = async (req, res, next) => {
   try {
     res.sendStatus(200);
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
+  }
+};
+
+router.restaurant = async (req, res, next) => {
+  try {
+    var axios = require("axios");
+
+    let search_type = "restaurants";
+    let API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
+    console.log(API_KEY);
+
+    var config = {
+      method: "get",
+      url: `https://maps.googleapis.com/maps/api/place/textsearch/json?type=${search_type}&query=${"thailand chaing mai"}&key=${API_KEY}`,
+      headers: {},
+    };
+
+    let searched = await axios(config);
+
+    res.status(200).json(searched);
+  } catch (error) {
+    res.status(500);
   }
 };
 
@@ -39,7 +63,6 @@ router.game = async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
   }
 };
@@ -48,7 +71,6 @@ router.login = async (req, res, next) => {
   try {
     res.render("login.ejs");
   } catch (error) {
-    console.error(error);
     res.status(500);
   }
 };
@@ -57,7 +79,6 @@ router.profile = async (req, res, next) => {
   try {
     res.render("profile.ejs");
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
   }
 };
@@ -82,7 +103,6 @@ router.sessionLogIn = async (req, res, next) => {
         }
       );
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
   }
 };
@@ -92,7 +112,6 @@ router.sessionLogOut = async (req, res, next) => {
     res.clearCookie("session");
     res.redirect("/login");
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
   }
 };
